@@ -2,46 +2,42 @@ name: Android CI
 
 on:
   push:
-    branches: [ "master", "stable" ]
+    branches: [ "main", "master", "stable" ]
   pull_request:
-    branches: [ "master", "stable" ]
+    branches: [ "main", "master", "stable" ]
+  workflow_dispatch:
 
 jobs:
-  check:
+  build:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
         with:
-          java-version: 21
           distribution: 'zulu'
+          java-version: '21'
           cache: gradle
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run Lint
-        run: ./gradlew lint
+      - name: Clean project
+        run: ./gradlew clean
 
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-java@v4
-      with:
-        java-version: 21
-        distribution: 'zulu'
-        cache: gradle
+      - name: Build Release APK
+        run: ./gradlew assembleRelease --no-daemon
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-
-    - name: Build with Gradle
-      run: ./gradlew assemble
-
-    - name: Upload PR artifacts
-      if: github.event_name == 'pull_request'
-      uses: actions/upload-artifact@v4
-      with:
-        name: release-apk
-        path: app/build/outputs/apk/*/release/BoomingMusic-*-release.apk
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: BoomingMusic-release
+          path: |
+            app/build/outputs/apk/release/*.apk
+            */build/outputs/apk/release/*.apk

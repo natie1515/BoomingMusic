@@ -31,13 +31,16 @@ jobs:
       - name: Clean project
         run: ./gradlew clean
 
-      - name: Build Release APK
-        run: ./gradlew assembleRelease --no-daemon
+      # 🔥 Construye los flavors que realmente existen
+      - name: Build Normal Release APK
+        run: ./gradlew assembleNormalRelease --no-daemon
 
+      - name: Build Fdroid Release APK
+        run: ./gradlew assembleFdroidRelease --no-daemon
+
+      # 🚀 Sube cualquier APK generado sin importar flavor
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
           name: BoomingMusic-release
-          path: |
-            app/build/outputs/apk/release/*.apk
-            */build/outputs/apk/release/*.apk
+          path: app/build/outputs/apk/**/*.apk
